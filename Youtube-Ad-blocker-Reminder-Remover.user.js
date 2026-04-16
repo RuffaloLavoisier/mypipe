@@ -809,8 +809,18 @@
                         ));
                     }
                     body.appendChild(sec);
+                } else {
+                    const hint = document.createElement('div');
+                    hint.className = 'rat-dl-hint';
+                    hint.textContent = 'No direct streams found';
+                    body.appendChild(hint);
                 }
-            } 
+            } else {
+                const hint = document.createElement('div');
+                hint.className = 'rat-dl-hint';
+                hint.textContent = 'Stream API unavailable';
+                body.appendChild(hint);
+            }
             log('Layer 6: Download panel rendered');
         }
  
