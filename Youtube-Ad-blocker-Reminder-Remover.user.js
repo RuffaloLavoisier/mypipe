@@ -7,8 +7,8 @@
 // @contributor  RuffaloLavoisier
 // @match        https://www.youtube.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
-// @updateURL    https://github.com/RuffaloLavoisier/RemoveAdblockThing/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
-// @downloadURL  https://github.com/RuffaloLavoisier/RemoveAdblockThing/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
+// @updateURL    https://github.com/RuffaloLavoisier/mypipe/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
+// @downloadURL  https://github.com/RuffaloLavoisier/mypipe/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
