@@ -1,83 +1,51 @@
-# Note: It was an fun runing, making, mataining this project and having a fun battle against youtube to the point were youtube was aware of this project and activity taking measures against it and then we would find ways around it. But I dont have the time to maitain and run this project anymore.
+# Remove Adblock Thing with Downloader !
 
-If you want to block ads on youtube without pop up just use like Ublock origin.
-The reason why this project was made in the first place was these adblockers used to be blocked, now they work just find on youtube.
+> YouTube 광고 차단 + 영상 다운로드 유저스크립트
 
-**Thank you for all the support this project got.**
+> YouTube의 광고 시스템과 애드블록 감지 메커니즘을 분석하여, 다층 방어 구조로 광고를 차단하고 영상 다운로드 기능을 제공하는 아주 순수한 연구 목적의 프로젝트입니다.
 
-# Remove the Adblock Popup from YOUTUBE
+![프로젝트 이미지](./Thumbnail.jpg)
 
-[![picture](Thumbnail.jpg?raw=true)](https://www.youtube.com/watch?v=jvSf10lgxs4&ab_channel=Joelmatic)
+> **이 프로젝트는 개인을 위하여 사용해야 하며 YouTube 서비스 이용약관을 준수하여 사용하시기 바랍니다. 이 외의 용도로 사용할 경우 책임을 지지 않습니다.**
 
-## Introduction
+---
 
-This repository contains a userscript designed to remove the annoying "Ad blocker is not allowed on Youtube" popup. Follow the instructions below to get started. We also have an undetected way of skipping ads if you get blocked from the video player.
+## 주요 기능
 
-## Table of Contents:
+| 기능 | 설명 |
+|------|------|
+| 광고 차단 | 서버 요청 인터셉트 + 응답 데이터 제거 + CSS 즉시 숨김 |
+| 광고 스킵 | 뚫고 온 광고를 자동 감지하여 즉시 건너뜀 |
+| 팝업 차단 | "광고 차단기 사용 중" 감지 우회 및 팝업 제거 |
+| 영상 다운로드 | YouTube 내부 API를 통해 스트림 URL을 추출하여 다운로드 |
 
-1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Common Issues](#Common-Issues)
-4. [Contribution](#contribution)
-5. [License](#license)
+---
 
-## Installation
+## 사용 방법 (Chrome)
 
-1. **Install Tampermonkey**:
-   If you haven't already, you need to install the Tampermonkey browser extension. You can find it for various browsers:
-   - [Tampermonkey for Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
-   - [Tampermonkey for Firefox](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
-   - [Tampermonkey for Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)
-   - [Tampermonkey for Opera/OperaGX](https://addons.opera.com/en-gb/extensions/details/tampermonkey-beta/)
+### 1단계: 스크립트 복사
 
-2. **Install the Script**:
-   [Click Here and Press Install](Youtube-Ad-blocker-Reminder-Remover.user.js?raw=True).
+`Youtube-Ad-blocker-Reminder-Remover.user.js` 파일의 내용을 복사합니다.
 
-3. **Enable the Script**:
-   Enable the script by clicking the switch next to the script name in the Tampermonkey Dashboard.
+### 2단계: 개발자 콘솔에 붙여넣기
 
-4. **Disable your adblocker**:
-   Whitelist YouTube on any Chrome extensions that block ads or any third-party things that disable ads. Don't worry; our script removes ads on YouTube.
+YouTube 페이지에서 `F12` → **Console** 탭에 붙여넣고 Enter.
 
+![콘솔에 스크립트 붙여넣기](./img/image-2.png)
 
-Note: This also allows you to watch videos when your video player is banned from using an adblock.
+### 3단계: 영상 다운로드
 
-## Common Issues
+영상 플레이어 아래에 **Download** 패널이 나타납니다. 버튼을 클릭하세요.
 
-**"Ad Blockers violate Youtube Terms Of Service" OR Just a black screen**
+![다운로드 버튼](./img/image-1.png)
 
-This happens when there is an adblock other than the script running. Common ways you may be blocking ads accidentally on Youtube is:
+새 탭에서 영상이 열리면, 브라우저 메뉴의 **다운로드**를 통해 저장합니다.
 
-- **Adblock extension:** Disable or whitelist YouTube on your ad blocker extension.
+![새 탭에서 다운로드](./img/image.png)
 
-- **Browser built-in adblock:** Some browsers have built-in ad blockers. Disable or configure them.
+---
 
-- **Other Tampermonkey scripts:** Scripts like YouTube enhancer may conflict. Disable them one by one to identify the issue.
+## Credits
 
-- **Wi-Fi/DNS/Firewall adblock rules:** Check network settings for any ad-blocking configurations.
-
-- **Windows hosts file rules:** Inspect the Windows hosts file (C:\Windows\System32\drivers\etc) for ad-blocking rules.
-
-## Contribution
-
-If you have any suggestions, bug reports, or want to contribute to this userscript, feel free to create issues or pull requests in this GitHub repository.
-
-### Contributors
-
-<a href="https://github.com/TheRealJoelmatic/RemoveAdblockThing/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=TheRealJoelmatic/RemoveAdblockThing" />
-</a>
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## Star History
-
-<a href="https://star-history.com/#TheRealJoelmatic/RemoveAdblockThing&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TheRealJoelmatic/RemoveAdblockThing&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TheRealJoelmatic/RemoveAdblockThing&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=TheRealJoelmatic/RemoveAdblockThing&type=Date" />
-  </picture>
-</a>
+- Original: [TheRealJoelmatic/RemoveAdblockThing](https://github.com/TheRealJoelmatic/RemoveAdblockThing)
+- Contributor: [RuffaloLavoisier](https://github.com/RuffaloLavoisier)
