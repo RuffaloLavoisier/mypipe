@@ -4,10 +4,11 @@
 // @version      6.1
 // @description  Removes YouTube ads and adblock detection popups using multi-layer blocking
 // @author       JoelMatic
+// @contributor  RuffaloLavoisier
 // @match        https://www.youtube.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
-// @updateURL    https://github.com/TheRealJoelmatic/RemoveAdblockThing/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
-// @downloadURL  https://github.com/TheRealJoelmatic/RemoveAdblockThing/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
+// @updateURL    https://github.com/RuffaloLavoisier/RemoveAdblockThing/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
+// @downloadURL  https://github.com/RuffaloLavoisier/RemoveAdblockThing/raw/main/Youtube-Ad-blocker-Reminder-Remover.user.js
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
@@ -872,7 +873,7 @@
 
     if (config.updateCheck) {
         const SCRIPT_URL =
-            'https://raw.githubusercontent.com/TheRealJoelmatic/RemoveAdblockThing/main/Youtube-Ad-blocker-Reminder-Remover.user.js';
+            'https://raw.githubusercontent.com/RuffaloLavoisier/RemoveAdblockThing/main/Youtube-Ad-blocker-Reminder-Remover.user.js';
 
         onReady(() => {
             setTimeout(() => {
