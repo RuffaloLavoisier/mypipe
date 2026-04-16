@@ -873,7 +873,7 @@
 
     if (config.updateCheck) {
         const SCRIPT_URL =
-            'https://raw.githubusercontent.com/RuffaloLavoisier/RemoveAdblockThing/main/Youtube-Ad-blocker-Reminder-Remover.user.js';
+            'https://raw.githubusercontent.com/RuffaloLavoisier/mypipe/main/Youtube-Ad-blocker-Reminder-Remover.user.js';
 
         onReady(() => {
             setTimeout(() => {
