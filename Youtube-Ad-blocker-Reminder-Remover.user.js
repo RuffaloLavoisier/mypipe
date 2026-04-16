@@ -25,6 +25,7 @@
         adSkipFallback: true,       // Layer 3: CSS hide + skip ads that slip through
         antiDetection: true,        // Layer 4: Bypass adblock detection popups
         cosmeticFiltering: true,    // Layer 5: Hide page-level ad elements
+        downloader: true,           // Layer 6: Video download panel
         updateCheck: true,
         debug: true,
     };
@@ -77,7 +78,10 @@
         return false;
     }
 
-    log('Script started (v6.1)');
+    // Shared state for downloader — populated by Layer 2 fetch proxy
+    let cachedPlayerResponse = null;
+
+    log('Script started (v6.2)');
 
     // =========================================================================
     //  Layer 1: Player Request Interception
@@ -149,6 +153,10 @@
                             const json = JSON.parse(text);
                             if (stripAdData(json)) {
                                 log('Layer 2a: Stripped ad data from fetch response');
+                            }
+                            // Cache for downloader
+                            if (json.streamingData) {
+                                cachedPlayerResponse = json;
                             }
                             return new Response(JSON.stringify(json), {
                                 status: response.status,
@@ -241,6 +249,79 @@
                 animation: rat-spin 0.8s linear infinite;
             }
             @keyframes rat-spin { to { transform: rotate(360deg); } }
+
+            /* Layer 6: Download panel */
+            #rat-download-panel {
+                margin: 12px 0;
+                background: #1a1a1a;
+                border-radius: 12px;
+                overflow: hidden;
+                font-family: 'YouTube Sans', 'Roboto', sans-serif;
+            }
+            .rat-dl-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                color: #fff;
+                font-size: 16px;
+                font-weight: 500;
+                cursor: default;
+            }
+            .rat-dl-toggle {
+                background: none;
+                border: none;
+                color: #aaa;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 4px 8px;
+            }
+            .rat-dl-toggle:hover { color: #fff; }
+            .rat-dl-body {
+                padding: 0 16px 12px;
+            }
+            .rat-dl-section {
+                margin-bottom: 10px;
+            }
+            .rat-dl-section-title {
+                color: #aaa;
+                font-size: 11px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 6px;
+            }
+            .rat-dl-btn {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 8px 12px;
+                margin-bottom: 4px;
+                background: #272727;
+                border: none;
+                border-radius: 8px;
+                color: #fff;
+                font-size: 13px;
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+            .rat-dl-btn:hover {
+                background: #3a3a3a;
+            }
+            .rat-dl-size {
+                color: #aaa;
+                font-size: 12px;
+                margin-left: 8px;
+                flex-shrink: 0;
+            }
+            .rat-dl-hint {
+                color: #777;
+                font-size: 11px;
+                padding: 6px 0 0;
+                border-top: 1px solid #333;
+                margin-top: 8px;
+            }
 
             /* Layer 5: Page-level ad elements */
             .ytp-ad-module,
@@ -504,6 +585,267 @@
     }
 
     // =========================================================================
+    //  Layer 6: Video Downloader
+    // =========================================================================
+
+    function setupDownloader() {
+        if (!config.downloader) return;
+
+        const PANEL_ID = 'rat-download-panel';
+
+        function getVideoId() {
+            return new URLSearchParams(window.location.search).get('v');
+        }
+ 
+        function getApiKey() {
+            try { return window.ytcfg?.get?.('INNERTUBE_API_KEY') || window.ytcfg?.data_?.INNERTUBE_API_KEY; } catch {}
+            try {
+                const match = document.documentElement.innerHTML.match(/"INNERTUBE_API_KEY":"([^"]+)"/);
+                return match?.[1];
+            } catch {}
+            return null;
+        }
+ 
+        function getVisitorData() {
+            try { return window.ytcfg?.get?.('VISITOR_DATA') || window.ytcfg?.data_?.VISITOR_DATA; } catch {}
+            return null;
+        }
+ 
+        function formatBytes(bytes) {
+            if (!bytes) return '';
+            const n = parseInt(bytes, 10);
+            if (n > 1073741824) return (n / 1073741824).toFixed(1) + ' GB';
+            if (n > 1048576) return (n / 1048576).toFixed(0) + ' MB';
+            return (n / 1024).toFixed(0) + ' KB';
+        }
+ 
+        function randomStr(len) {
+            return Array.from({ length: len }, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[Math.random() * 62 | 0]).join('');
+        }
+ 
+        // Fetch streams via ANDROID Innertube API (returns direct URLs)
+        async function fetchAndroidStreams(videoId) {
+            const apiKey = getApiKey();
+            if (!apiKey) { log('Layer 6: No API key found', 'warn'); return null; }
+ 
+            // Get visitorData (from page or fetch new)
+            let visitorData = getVisitorData();
+            if (!visitorData) {
+                try {
+                    const vResp = await fetch(`https://youtubei.googleapis.com/youtubei/v1/visitor_id?prettyPrint=false&key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            context: { client: { clientName: 'ANDROID', clientVersion: '21.03.36', platform: 'MOBILE', osName: 'Android', osVersion: '16', androidSdkVersion: 36, hl: 'en', gl: 'US' } }
+                        }),
+                    });
+                    const vJson = await vResp.json();
+                    visitorData = vJson?.responseContext?.visitorData;
+                    log('Layer 6: Fetched visitorData');
+                } catch (e) {
+                    log('Layer 6: visitor_id fetch failed', 'warn', e);
+                }
+            }
+ 
+            // Call player endpoint
+            try {
+                const resp = await fetch(
+                    `https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false&key=${apiKey}&t=${randomStr(12)}&id=${videoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        context: {
+                            client: {
+                                clientName: 'ANDROID',
+                                clientVersion: '21.03.36',
+                                clientScreen: 'WATCH',
+                                platform: 'MOBILE',
+                                osName: 'Android',
+                                osVersion: '16',
+                                androidSdkVersion: 36,
+                                hl: 'en',
+                                gl: 'US',
+                                utcOffsetMinutes: 0,
+                                ...(visitorData && { visitorData }),
+                            },
+                        },
+                        videoId,
+                        cpn: randomStr(16),
+                        contentCheckOk: true,
+                        racyCheckOk: true,
+                    }),
+                });
+                const json = await resp.json();
+                if (json?.playabilityStatus?.status === 'OK' && json?.streamingData) {
+                    log('Layer 6: ANDROID API success — streams available');
+                    return json;
+                }
+                log('Layer 6: ANDROID API status: ' + json?.playabilityStatus?.status, 'warn');
+            } catch (e) {
+                log('Layer 6: ANDROID player fetch failed', 'warn', e);
+            }
+            return null;
+        }
+ 
+        function parseStreams(data) {
+            if (!data?.streamingData) return { combined: [], videoOnly: [], audioOnly: [] };
+            const combined = [], videoOnly = [], audioOnly = [];
+ 
+            for (const f of data.streamingData.formats || []) {
+                if (!f.url) continue;
+                combined.push({
+                    url: f.url, quality: f.qualityLabel || '?',
+                    mimeType: f.mimeType || '', size: formatBytes(f.contentLength),
+                    height: f.height, type: 'combined',
+                });
+            }
+            for (const f of data.streamingData.adaptiveFormats || []) {
+                if (!f.url) continue;
+                const mime = f.mimeType || '';
+                if (mime.startsWith('video/')) {
+                    videoOnly.push({
+                        url: f.url, quality: f.qualityLabel || `${f.height}p`,
+                        mimeType: mime, size: formatBytes(f.contentLength),
+                        height: f.height, fps: f.fps, type: 'video',
+                    });
+                } else if (mime.startsWith('audio/')) {
+                    audioOnly.push({
+                        url: f.url, quality: f.audioQuality?.replace('AUDIO_QUALITY_', '') || '?',
+                        mimeType: mime, size: formatBytes(f.contentLength),
+                        bitrate: f.bitrate, type: 'audio',
+                    });
+                }
+            }
+            videoOnly.sort((a, b) => (b.height || 0) - (a.height || 0));
+            audioOnly.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
+            combined.sort((a, b) => (b.height || 0) - (a.height || 0));
+            return { combined, videoOnly, audioOnly };
+        }
+ 
+        function createButton(label, sublabel, onClick) {
+            const btn = document.createElement('button');
+            btn.className = 'rat-dl-btn';
+            const l = document.createElement('span');
+            l.textContent = label;
+            btn.appendChild(l);
+            if (sublabel) {
+                const s = document.createElement('span');
+                s.className = 'rat-dl-size';
+                s.textContent = sublabel;
+                btn.appendChild(s);
+            }
+            btn.addEventListener('click', onClick);
+            return btn;
+        }
+ 
+        function createSection(titleText) {
+            const sec = document.createElement('div');
+            sec.className = 'rat-dl-section';
+            const t = document.createElement('div');
+            t.className = 'rat-dl-section-title';
+            t.textContent = titleText;
+            sec.appendChild(t);
+            return sec;
+        }
+ 
+        async function renderPanel() {
+            document.getElementById(PANEL_ID)?.remove();
+            if (!window.location.pathname.startsWith('/watch')) return;
+ 
+            const videoId = getVideoId();
+            if (!videoId) return;
+ 
+            // Show loading state
+            const target = document.querySelector('#above-the-fold') ||
+                           document.querySelector('#below') ||
+                           document.querySelector('ytd-watch-metadata');
+            if (!target) return;
+ 
+            const panel = document.createElement('div');
+            panel.id = PANEL_ID;
+ 
+            const header = document.createElement('div');
+            header.className = 'rat-dl-header';
+            const headerTitle = document.createElement('span');
+            headerTitle.textContent = 'Download';
+            header.appendChild(headerTitle);
+ 
+            const toggle = document.createElement('button');
+            toggle.className = 'rat-dl-toggle';
+            toggle.textContent = '▾';
+            toggle.addEventListener('click', () => {
+                const b = panel.querySelector('.rat-dl-body');
+                const hidden = b.style.display === 'none';
+                b.style.display = hidden ? '' : 'none';
+                toggle.textContent = hidden ? '▾' : '▸';
+            });
+            header.appendChild(toggle);
+            panel.appendChild(header);
+ 
+            const body = document.createElement('div');
+            body.className = 'rat-dl-body';
+ 
+            const loadingHint = document.createElement('div');
+            loadingHint.className = 'rat-dl-hint';
+            loadingHint.textContent = 'Fetching streams...';
+            body.appendChild(loadingHint);
+            panel.appendChild(body);
+            target.parentNode.insertBefore(panel, target.nextSibling);
+ 
+            // Fetch ANDROID streams
+            const data = await fetchAndroidStreams(videoId);
+            loadingHint.remove();
+ 
+            if (data) {
+                const { combined, videoOnly, audioOnly } = parseStreams(data);
+ 
+                if (combined.length > 0) {
+                    const sec = createSection('Video + Audio');
+                    for (const s of combined) {
+                        sec.appendChild(createButton(
+                            `${s.quality} (MP4)`, s.size,
+                            () => { log(`Layer 6: Download ${s.quality}`); window.open(s.url, '_blank'); }
+                        ));
+                    }
+                    body.appendChild(sec);
+                }
+            } 
+            log('Layer 6: Download panel rendered');
+        }
+ 
+        let lastVideoId = null;
+ 
+        function tryRender(retries = 20) {
+            if (!window.location.pathname.startsWith('/watch')) {
+                // Not a watch page — remove panel if present
+                document.getElementById(PANEL_ID)?.remove();
+                lastVideoId = null;
+                return;
+            }
+ 
+            const currentId = new URLSearchParams(window.location.search).get('v');
+ 
+            // Same video, panel already exists — skip
+            if (currentId === lastVideoId && document.getElementById(PANEL_ID)) return;
+ 
+            // Different video or no panel — remove old and re-render
+            document.getElementById(PANEL_ID)?.remove();
+            lastVideoId = currentId;
+ 
+            const target = document.querySelector('#above-the-fold, #below, ytd-watch-metadata');
+            if (target) renderPanel();
+            else if (retries > 0) setTimeout(() => tryRender(retries - 1), 500);
+        }
+ 
+        tryRender();
+        document.addEventListener('yt-navigate-finish', () => {
+            lastVideoId = null; // Force re-render on navigation
+            setTimeout(tryRender, 1000);
+        });
+        log('Layer 6: Downloader initialized');
+    }
+
+    // =========================================================================
     //  SPA Navigation Support
     // =========================================================================
 
@@ -517,8 +859,8 @@
 
     onReady(() => {
         setupAdSkip();
+        setupDownloader();
 
-        // Use YouTube's own navigation event instead of MutationObserver on body
         document.addEventListener('yt-navigate-finish', () => {
             log('SPA navigation detected');
         });
