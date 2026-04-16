@@ -29,7 +29,9 @@
 
 ### 2단계: 개발자 콘솔에 붙여넣기
 
-YouTube 페이지에서 `F12` → **Console** 탭에 붙여넣고 Enter.
+![개발자모드](./img/image-3.png)
+
+또는 YouTube 페이지에서 `F12` → **Console** 탭에 붙여넣고 Enter.
 
 ![콘솔에 스크립트 붙여넣기](./img/image-2.png)
 
