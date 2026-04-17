@@ -61,6 +61,13 @@ fetch('https://raw.githubusercontent.com/RuffaloLavoisier/mypipe/main/Youtube-Ad
 
 ---
 
+## TODO
+
+- [x] 광고 차단 우회 추가
+- [x] 기본 360p 영상 다운로드
+- [ ] 1080p 고해상도 및 오디오 파일 다운로드
+
+
 ## Credits
 
 - Original: [TheRealJoelmatic/RemoveAdblockThing](https://github.com/TheRealJoelmatic/RemoveAdblockThing)
