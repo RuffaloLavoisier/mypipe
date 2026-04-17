@@ -21,6 +21,18 @@
 
 ---
 
+## Quick Start
+
+![개발자모드](./img/image-3.png)
+
+또는 YouTube 페이지에서 `F12` → **Console** 탭에 아래를 붙여넣고 Enter.
+
+```
+fetch('https://raw.githubusercontent.com/RuffaloLavoisier/mypipe/main/Youtube-Ad-blocker-Reminder-Remover.user.js').then(r=>r.text()).then(copy)
+```
+
+그리고 `Ctrl + V` 를 통해 붙여넣기
+
 ## 사용 방법 (Chrome)
 
 ### 1단계: 스크립트 복사
