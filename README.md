@@ -21,7 +21,9 @@
 
 ---
 
-## Quick Start
+## Quick Start (almost all)
+
+> Safari/Chrome/Firefox/Edge
 
 ![개발자모드](./img/image-3.png)
 
