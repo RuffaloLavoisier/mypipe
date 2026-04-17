@@ -31,7 +31,7 @@
 fetch('https://raw.githubusercontent.com/RuffaloLavoisier/mypipe/main/Youtube-Ad-blocker-Reminder-Remover.user.js').then(r=>r.text()).then(copy)
 ```
 
-그리고 `Ctrl + V` 를 통해 붙여넣기
+클립보드에 복사가 되어 다시 한 번 `Ctrl + V` 를 통해 붙여넣고 Enter.
 
 ## 사용 방법 (Chrome)
 
